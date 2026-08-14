@@ -1,0 +1,10 @@
+# PPO → DRAIL post-training for the runner persona.
+exp_name: drail_posttrain_runner
+seed: 9
+init_from: human_like_rl/checkpoints/ppo/runner
+drail_lambda: 1.2
+lives: 5
+action_state_dir: data/human_experiment/action_state/action_state_runner_stats
+level_dir: data/human_experiment/levels/expert_levels_runner_stats
+jar_path: main/smb/Mario-AI-Interface.jar
+user_dir: main/smb

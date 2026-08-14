@@ -1,0 +1,83 @@
+\documentclass[border=10pt, multi, tikz]{standalone}
+\usepackage{import}
+\subimport{layers/}{init}
+\usetikzlibrary{positioning}
+\usetikzlibrary{3d}
+\usetikzlibrary{calc}
+
+\def\ConvColor{rgb:yellow,5;red,2.5;white,5}
+\def\ConvReluColor{rgb:yellow,5;red,5;white,5}
+\def\EmbedColor{rgb:blue,2;green,1;black,0.3}
+\def\FcColor{rgb:blue,5;red,2.5;white,5}
+\def\FcReluColor{rgb:blue,5;red,5;white,4}
+\def\SoftmaxColor{rgb:magenta,5;black,7}
+\def\ValueColor{rgb:red,1;black,0.3}
+\def\SumColor{rgb:blue,5;green,15}
+
+\begin{document}
+\begin{tikzpicture}
+\tikzstyle{connection}=[ultra thick,every node/.style={sloped,allow upside down},draw=\edgecolor,opacity=0.7]
+
+% ---------- input game frame ----------
+\node[canvas is zy plane at x=0] (input) at (-3.2,0,0) {\includegraphics[width=5.6cm,height=5.6cm]{game_frame.png}};
+\node[anchor=north, align=center] at (-3.2,-3.4,0) {\small $16{\times}16$ tile grid\\\small around Mario};
+
+% ---------- grid branch ----------
+\pic[shift={(0,0,0)}] at (0,0,0) {Box={name=embed, caption=embedding, xlabel={{"16",""}}, zlabel=16, fill=\EmbedColor, opacity=0.6, height=16, width=2, depth=16}};
+
+\pic[shift={(2.6,0,0)}] at (embed-east) {RightBandedBox={name=convin, caption=conv $3{\times}3$, xlabel={{"64",""}}, zlabel=16, fill=\ConvColor, bandfill=\ConvReluColor, height=16, width=3.5, depth=16}};
+
+\pic[shift={(2.0,0,0)}] at (convin-east) {RightBandedBox={name=res1, caption=residual block, xlabel={{"64","64"}}, zlabel=16, fill=\ConvColor, bandfill=\ConvReluColor, height=16, width={3.5,3.5}, depth=16}};
+\pic[shift={(1.1,0,0)}] at (res1-east) {Ball={name=add1, fill=\SumColor, opacity=0.6, logo=$+$, radius=2.2}};
+
+\pic[shift={(1.1,0,0)}] at (add1-east) {RightBandedBox={name=res2, caption=residual block, xlabel={{"64","64"}}, zlabel=16, fill=\ConvColor, bandfill=\ConvReluColor, height=16, width={3.5,3.5}, depth=16}};
+\pic[shift={(1.1,0,0)}] at (res2-east) {Ball={name=add2, fill=\SumColor, opacity=0.6, logo=$+$, radius=2.2}};
+
+\pic[shift={(1.7,0,0)}] at (add2-east) {Box={name=gridfc, caption=flatten + FC, zlabel=1024, fill=\FcColor, opacity=0.8, height=2.5, width=2.5, depth=22}};
+
+% ---------- state branch ----------
+\pic[shift={(8.0,-8.0,0)}] at (0,0,0) {Box={name=statein, caption=state, zlabel=4, fill=\EmbedColor, opacity=0.6, height=1.8, width=2.5, depth=3}};
+\node[anchor=north, align=center] at ($(statein-south)+(0,-1.3,0)$) {\small velocity $\cdot$ power-up\\\small on-ground};
+\pic[shift={(2.6,0,0)}] at (statein-east) {Box={name=statefc1, caption=FC {+} LN, zlabel=64, fill=\FcColor, opacity=0.8, height=1.8, width=2.5, depth=7}};
+\pic[shift={(2.2,0,0)}] at (statefc1-east) {Box={name=statefc2, caption=FC, zlabel=64, fill=\FcColor, opacity=0.8, height=1.8, width=2.5, depth=7}};
+
+% ---------- fusion ----------
+\pic[shift={(2.2,0,0)}] at (gridfc-east) {Ball={name=concat, fill=\SumColor, opacity=0.6, logo=$\|$, radius=2.2, caption=concat}};
+\pic[shift={(1.4,0,0)}] at (concat-east) {Box={name=fusion, caption=fusion FC, zlabel=1024, fill=\FcReluColor, opacity=0.8, height=2.5, width=2.5, depth=22}};
+
+% ---------- actor head ----------
+\pic[shift={(2.6,4.2,0)}] at (fusion-east) {Box={name=actorfc, caption=actor FC, zlabel=1024, fill=\FcColor, opacity=0.8, height=2.2, width=2.2, depth=18}};
+\pic[shift={(1.6,0,0)}] at (actorfc-east) {Box={name=actorout, caption=policy, zlabel=32, fill=\SoftmaxColor, opacity=0.8, height=2.2, width=2.2, depth=6}};
+
+% ---------- critic head ----------
+\pic[shift={(2.6,-4.2,0)}] at (fusion-east) {Box={name=criticfc, caption=critic FC, zlabel=1024, fill=\FcColor, opacity=0.8, height=2.2, width=2.2, depth=18}};
+\pic[shift={(1.6,0,0)}] at (criticfc-east) {Box={name=criticout, caption=value, zlabel=1, fill=\ValueColor, opacity=0.8, height=2.2, width=2.2, depth=1.5}};
+
+\node[anchor=north, align=center] at ($(actorout-south)+(0,-1.1,0)$) {\small 32 discrete actions};
+
+% ---------- connections ----------
+\draw [connection] (input) -- node {\midarrow} (embed-west);
+\draw [connection] (embed-east) -- node {\midarrow} (convin-west);
+\draw [connection] (convin-east) -- node {\midarrow} (res1-west);
+\draw [connection] (res1-east) -- (add1-west);
+\draw [connection] (add1-east) -- node {\midarrow} (res2-west);
+\draw [connection] (res2-east) -- (add2-west);
+\draw [connection] (add2-east) -- node {\midarrow} (gridfc-west);
+\draw [connection] (gridfc-east) -- (concat-west);
+\draw [connection] (concat-east) -- node {\midarrow} (fusion-west);
+\draw [connection] (fusion-east) -- node {\midarrow} (actorfc-west);
+\draw [connection] (actorfc-east) -- node {\midarrow} (actorout-west);
+\draw [connection] (fusion-east) -- node {\midarrow} (criticfc-west);
+\draw [connection] (criticfc-east) -- node {\midarrow} (criticout-west);
+
+% skip connections over the residual blocks
+\draw [connection] (convin-north) -- ++(0,3.4,0) -- ($(add1-north)+(0,3.4,0)$) -- (add1-north);
+\draw [connection] (add1-north) -- ++(0,3.4,0) -- ($(add2-north)+(0,3.4,0)$) -- (add2-north);
+
+% state branch into concat
+\draw [connection] (statein-east) -- node {\midarrow} (statefc1-west);
+\draw [connection] (statefc1-east) -- node {\midarrow} (statefc2-west);
+\draw [connection] (statefc2-east) -- (concat-south |- statefc2-east) -- (concat-south);
+
+\end{tikzpicture}
+\end{document}

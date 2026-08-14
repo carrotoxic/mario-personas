@@ -1,0 +1,8 @@
+# PPO runner persona — segment + win reward only (paper seed 9).
+_include: ppo_base.yaml
+exp_name: ppo_runner
+seed: 9
+kill_reward: 0.0
+coin_reward: 0.0
+mushroom_reward: 0.0
+fireflower_reward: 0.0

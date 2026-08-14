@@ -1,0 +1,8 @@
+# PPO collector persona — item + segment + win reward (paper seed 4).
+_include: ppo_base.yaml
+exp_name: ppo_collector
+seed: 4
+kill_reward: 0.0
+coin_reward: 2.5
+mushroom_reward: 2.5
+fireflower_reward: 2.5

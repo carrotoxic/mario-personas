@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Training / eval artifacts
+runs/
+*.pt
+drail_discriminator.pt
+evaluation_results_*.json
+aar_*.json
+
+# Logs
+*.log
+events.out.tfevents.*
+
+# Local / IDE
+.env
+.idea/
+.vscode/

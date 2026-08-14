@@ -1,0 +1,10 @@
+# PPO → DRAIL post-training for the killer persona.
+exp_name: drail_posttrain_killer
+seed: 7
+init_from: human_like_rl/checkpoints/ppo/killer
+drail_lambda: 2.9
+lives: 5
+action_state_dir: data/human_experiment/action_state/action_state_killer_stats
+level_dir: data/human_experiment/levels/expert_levels_killer_stats
+jar_path: main/smb/Mario-AI-Interface.jar
+user_dir: main/smb

@@ -1,0 +1,8 @@
+# PPO killer persona — kill + segment + win reward (paper seed 7).
+_include: ppo_base.yaml
+exp_name: ppo_killer
+seed: 7
+kill_reward: 2.5
+coin_reward: 0.0
+mushroom_reward: 0.0
+fireflower_reward: 0.0
